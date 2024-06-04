@@ -8,8 +8,8 @@ import Providers from '@/components/providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Next Express Starter Template',
-  description: 'A starter template for Next.js with Express.js'
+  title: 'Task alert',
+  description: 'Task alert project for HUST ITSS-2 course'
 }
 
 export default function RootLayout({
