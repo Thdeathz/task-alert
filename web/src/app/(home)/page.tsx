@@ -1,27 +1,16 @@
-import UserInfo from '@/components/home/user-info'
-import ThemeButton from '@/components/theme-button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { auth } from '@/server/auth'
+import TasksList from '@/components/home/tasks-list'
+import { getAllTasks } from '@/server/actions/task'
 
 export default async function Home() {
-  const session = await auth()
+  const tasks = await getAllTasks()
 
   return (
-    <Card>
-      <ScrollArea className="aspect-square h-[30rem]">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Home</CardTitle>
+    <section className="relative flex h-full w-full items-start justify-start gap-6">
+      <TasksList tasks={tasks} />
 
-            <ThemeButton />
-          </div>
-        </CardHeader>
-
-        <CardContent className="w-[30rem]">
-          {session && <UserInfo user={session.user} currentToken={session.accessToken} />}
-        </CardContent>
-      </ScrollArea>
-    </Card>
+      <div className="flex-center sticky top-6 min-h-content w-0 shrink grow rounded-md bg-white pt-6 shadow">
+        <p className="text-lg font-medium opacity-30">Not available yet</p>
+      </div>
+    </section>
   )
 }

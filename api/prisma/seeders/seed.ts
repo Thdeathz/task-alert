@@ -1,8 +1,14 @@
 import prisma from './prismaClient'
+import tagSeeder from './tag.seeder'
+import taskSeeder from './task.seeder'
 import userSeeder from './user.seeder'
 
 async function seed() {
-  await userSeeder()
+  const users = await userSeeder()
+
+  const tags = await tagSeeder()
+
+  await taskSeeder({ users, tags })
 }
 
 seed()

@@ -11,7 +11,6 @@ import APIs_V1 from '@/apis/routes/v1'
 import corsOptions from '@/configs/cors-options'
 import passport from '@/configs/init.passport'
 import app from '@/servers/init.express'
-import transporter from '@/servers/init.mailer'
 
 dotenv.config()
 
@@ -39,13 +38,4 @@ app.listen(PORT, () => {
 
 app.on('error', (error) => {
   console.log(`❌ Server error: ${error}`)
-})
-
-// nodemailer transporter
-transporter.verify((error) => {
-  if (error) {
-    console.log(error)
-  } else {
-    console.log('💌 Server ready to send emails')
-  }
 })

@@ -3,7 +3,6 @@ import { StatusCodes } from 'http-status-codes'
 import HttpError from '../utils/http-error'
 
 import jwtService from './jwt.service'
-import mailService from './mail.service'
 import userService from './user.service'
 
 const generateVerifyToken = async (email: string) => {
@@ -14,8 +13,6 @@ const generateVerifyToken = async (email: string) => {
   const newVerifyToken = await jwtService.signVerifyToken(foundUser.id)
 
   if (!newVerifyToken) throw new HttpError(StatusCodes.INTERNAL_SERVER_ERROR, 'Cannot generate verify token')
-
-  await mailService.sendResetPasswordEmail(foundUser.email, newVerifyToken)
 
   return true
 }
