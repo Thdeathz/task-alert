@@ -1,5 +1,6 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -29,6 +30,7 @@ export default function CreateTaskForm() {
 
   const [taskType, setTaskType] = useState<string>('DAILY')
   const form = useForm<z.infer<typeof CreateTaskSchema>>({
+    resolver: zodResolver(CreateTaskSchema),
     defaultValues: {
       title: '',
       tag: '',
@@ -51,6 +53,7 @@ export default function CreateTaskForm() {
       toast.success('New task has been added')
       form.reset()
       router.refresh()
+      // router.push('/')
     } catch (error) {
       toast.error('Failed to add new task. Please try again later')
     }
