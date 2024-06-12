@@ -1,7 +1,10 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as z from 'zod'
 
 import {
   Select,
@@ -12,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { CreateTaskSchema } from '@/schema/task-schema'
+import { createNewTask } from '@/server/actions/task'
 
 import { Button } from '../ui/button'
 import { DialogFooter } from '../ui/dialog'
@@ -20,19 +25,35 @@ import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 
 export default function CreateTaskForm() {
+  const router = useRouter()
+
   const [taskType, setTaskType] = useState<string>('DAILY')
-  const form = useForm({
+  const form = useForm<z.infer<typeof CreateTaskSchema>>({
     defaultValues: {
       title: '',
       tag: '',
-      type: '',
       dueDate: '',
       description: ''
     }
   })
 
-  const onSubmit = async () => {
-    // console.log(taskType, data)
+  const onSubmit = async (data: z.infer<typeof CreateTaskSchema>) => {
+    if (!taskType) {
+      toast.error('Please pick a task type')
+    }
+
+    try {
+      await createNewTask({
+        ...data,
+        type: taskType
+      })
+
+      toast.success('New task has been added')
+      form.reset()
+      router.refresh()
+    } catch (error) {
+      toast.error('Failed to add new task. Please try again later')
+    }
   }
 
   return (

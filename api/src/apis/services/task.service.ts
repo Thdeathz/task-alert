@@ -17,7 +17,7 @@ const getAllTasks = async () => {
       },
     },
     orderBy: {
-      dueDate: 'desc',
+      id: 'desc',
     },
   })
 

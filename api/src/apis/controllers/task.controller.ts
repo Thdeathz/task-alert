@@ -42,6 +42,11 @@ export const updateNotifyOption: RequestHandler = async (req, res) => {
     .json(makeResponse.defaultResponse('Update notify option success', StatusCodes.OK, updatedTask))
 }
 
+/**
+ * @desc Create new task
+ * @route POST /tasks
+ * @access Private
+ */
 export const createNewTask: RequestHandler = async (req, res) => {
   const { title, tag, type, dueDate, description } = req.body
   const newTask = await taskService.createNewTask({ title, tag, type, dueDate, description })

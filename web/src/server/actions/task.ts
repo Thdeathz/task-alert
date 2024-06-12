@@ -1,8 +1,11 @@
 'use server'
 
+import * as z from 'zod'
+
 import { ApiResponse } from '@/@types'
 import { ITask, ITaskDetail } from '@/@types/task'
 import axiosAuth from '@/lib/axios-auth'
+import { CreateTaskSchema } from '@/schema/task-schema'
 
 export const getAllTasks = async () => {
   try {
@@ -36,4 +39,16 @@ export const updateNotifyOption = async (
   } catch (error) {
     return null
   }
+}
+
+interface CreateNewTaskProps extends z.infer<typeof CreateTaskSchema> {
+  type: string
+}
+
+export const createNewTask = async (data: CreateNewTaskProps) => {
+  const { data: response } = await axiosAuth.post<ApiResponse<null>>(`/tasks`, {
+    ...data
+  })
+
+  return response.data
 }
