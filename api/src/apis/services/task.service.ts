@@ -1,7 +1,14 @@
-import { NotificationType, TaskType } from '@prisma/client'
+import { NotificationType, Task, TaskType } from '@prisma/client'
+import { scheduleJob } from 'node-schedule'
+
+import { getTime } from '../utils/datetime'
+
+import redisService from './redis.service'
 
 import prisma from '@/apis/databases/init.prisma'
+import mailService from '@/apis/services/mail.service'
 import HttpError from '@/apis/utils/http-error'
+import io from '@/servers/init.socket'
 
 const getAllTasks = async () => {
   const tasks = await prisma.task.findMany({
@@ -45,6 +52,7 @@ const getTaskDetail = async (id: string) => {
       id: true,
       title: true,
       description: true,
+      type: true,
       dueDate: true,
       notifyOption: true,
       notifyAt: true,
@@ -67,6 +75,7 @@ const getTaskDetail = async (id: string) => {
     id: task.id,
     title: task.title,
     description: task.description,
+    type: task.type,
     dueDate: new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(
       new Date(task.dueDate),
     ),
@@ -103,9 +112,19 @@ type CreateNewTaskProps = {
   type: TaskType
   dueDate: string
   description: string
+  notifyOption: NotificationType[]
+  notifyAt: { value: number; unit: string }
 }
 
-const createNewTask = async ({ title, tag, type, dueDate, description }: CreateNewTaskProps) => {
+const createNewTask = async ({
+  title,
+  tag,
+  type,
+  dueDate,
+  description,
+  notifyAt,
+  notifyOption,
+}: CreateNewTaskProps) => {
   const user = await prisma.user.findFirst({
     where: {
       role: 'USER',
@@ -122,10 +141,17 @@ const createNewTask = async ({ title, tag, type, dueDate, description }: CreateN
       description,
       dueDate: new Date(dueDate),
       type,
+      notifyOption,
+      notifyAt: `${notifyAt.value}${notifyAt.unit}`,
       tag: {
-        create: {
-          title: tag,
-          slug: tag.toLowerCase().replace(' ', '-'),
+        connectOrCreate: {
+          where: {
+            slug: tag.toLowerCase().replace(' ', '-'),
+          },
+          create: {
+            title: tag,
+            slug: tag.toLowerCase().replace(' ', '-'),
+          },
         },
       },
       user: {
@@ -134,6 +160,69 @@ const createNewTask = async ({ title, tag, type, dueDate, description }: CreateN
         },
       },
     },
+  })
+
+  const notifyDate = new Date(getTime(newTask.dueDate, notifyAt.value, notifyAt.unit))
+
+  console.log(new Date(newTask.dueDate), notifyDate, notifyAt.value, notifyAt.unit)
+
+  scheduleJob(notifyDate, async () => {
+    console.log('notify task', newTask.id)
+
+    const task = await getTaskDetail(newTask.id)
+
+    if (!task) return
+
+    if (task.notifyOption.includes('EMAIL')) {
+      // send email
+      const user = await prisma.user.findFirst({
+        where: {
+          role: 'USER',
+        },
+      })
+
+      if (!user || !user.email) {
+        throw new HttpError(404, 'User not found')
+      }
+
+      await mailService.taskNotification(user.email, task.title)
+    }
+
+    if (task.notifyOption.includes('APP')) {
+      const allTask = (await redisService.get<Task[]>('task', 'list')) || []
+
+      await redisService.set('task', 'list', [...allTask, task])
+
+      io.emit('task:list', [...allTask, task])
+      io.emit('task:new', {
+        id: task.id,
+        title: task.title,
+      })
+    }
+  })
+
+  scheduleJob(new Date(newTask.dueDate), async () => {
+    const task = await getTaskDetail(newTask.id)
+
+    if (!task) return
+
+    if (task.type === 'ONETIME') {
+      const notiTask = await redisService.get<Task[]>('task', 'list')
+
+      if (notiTask && notiTask.find((each) => each.id === task.id)) {
+        await redisService.set(
+          'task',
+          'list',
+          notiTask.filter((each) => each.id !== task.id),
+        )
+      }
+
+      await prisma.task.delete({
+        where: {
+          id: task.id,
+        },
+      })
+    }
   })
 
   return newTask

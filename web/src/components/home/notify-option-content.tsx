@@ -28,15 +28,18 @@ type OptionItemProps = {
   setForm: React.Dispatch<React.SetStateAction<INotifyOption>>
   id: NotifyOptionType
   label: string
+  disabled?: boolean
 }
 
-function OptionItem({ form, setForm, id, label }: OptionItemProps) {
+function OptionItem({ form, setForm, id, label, disabled = false }: OptionItemProps) {
   return (
     <div className="flex items-center space-x-2">
       <Checkbox
         checked={form.notifyOption.includes(id)}
-        id="APP"
-        onChange={() => {
+        id={id}
+        onCheckedChange={(state) => {
+          if (state && form.notifyOption.find((item) => item === id)) return
+
           setForm({
             ...form,
             notifyOption: form.notifyOption.includes(id)
@@ -46,7 +49,7 @@ function OptionItem({ form, setForm, id, label }: OptionItemProps) {
         }}
       />
       <label
-        htmlFor="APP"
+        htmlFor={id}
         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
       >
         {label}
@@ -77,7 +80,7 @@ export default function NotifyOptionContent({ form, setForm }: Props) {
               ...form,
               notifyAt: {
                 ...form.notifyAt,
-                value: parseInt(e.target.value ?? 0)
+                value: e.target.value ? parseInt(e.target.value) : 0
               }
             })
           }}

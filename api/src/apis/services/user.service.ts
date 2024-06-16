@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt'
 import { StatusCodes } from 'http-status-codes'
 
 import prisma from '@/apis/databases/init.prisma'
+import mailService from '@/apis/services/mail.service'
 import HttpError from '@/apis/utils/http-error'
 
 const getUserByEmail = async (email: string) => {
@@ -102,6 +103,39 @@ const updateUserPassword = async (id: string, password: string) => {
   })
 }
 
+const getCurrentUser = async () => {
+  return await prisma.user.findFirst({
+    where: {
+      role: 'USER',
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      phoneNumber: true,
+    },
+  })
+}
+
+const updateUserInfo = async ({ id, email, phoneNumber }: { id: string; email: string; phoneNumber: string }) => {
+  const user = await prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      email,
+      phoneNumber,
+    },
+  })
+
+  if (!user) throw new HttpError(StatusCodes.NOT_FOUND, 'User not found')
+
+  await mailService.setMailSuccess(email)
+
+  return user
+}
+
 export default {
   getUserByEmail,
   getUserById,
@@ -109,4 +143,6 @@ export default {
   checkDuplicateEmail,
   createNewUser,
   updateUserPassword,
+  getCurrentUser,
+  updateUserInfo,
 }

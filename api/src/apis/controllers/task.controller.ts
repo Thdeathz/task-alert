@@ -48,8 +48,8 @@ export const updateNotifyOption: RequestHandler = async (req, res) => {
  * @access Private
  */
 export const createNewTask: RequestHandler = async (req, res) => {
-  const { title, tag, type, dueDate, description } = req.body
-  const newTask = await taskService.createNewTask({ title, tag, type, dueDate, description })
+  const { title, tag, type, dueDate, description, notifyOption, notifyAt } = req.body
+  const newTask = await taskService.createNewTask({ title, tag, type, dueDate, description, notifyOption, notifyAt })
 
   return res
     .status(StatusCodes.CREATED)

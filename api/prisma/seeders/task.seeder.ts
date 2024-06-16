@@ -22,7 +22,6 @@ const taskSeeder = async ({ users, tags }: Props) => {
         await prisma.task.create({
           data: {
             title: task.title,
-            type: task.type,
             description: task.description,
             dueDate: task.dueDate,
             tagId: task.tagId,

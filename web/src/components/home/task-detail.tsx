@@ -1,7 +1,10 @@
+'use client'
+
 import { CalendarIcon } from '@radix-ui/react-icons'
 
-import { getTaskDetail } from '@/server/actions/task'
+import { useGetTaskDetail } from '@/data/task'
 
+import Loading from '../loading'
 import { Separator } from '../ui/separator'
 
 import NotifyOption from './notify-option'
@@ -10,8 +13,12 @@ type Props = {
   taskId: string
 }
 
-export default async function TaskDetail({ taskId }: Props) {
-  const task = await getTaskDetail(taskId)
+export default function TaskDetail({ taskId }: Props) {
+  const { data: task, isLoading } = useGetTaskDetail(taskId)
+
+  if (isLoading) {
+    return <Loading />
+  }
 
   if (!task) {
     return <div>Task not found</div>

@@ -11,11 +11,12 @@ import APIs_V1 from '@/apis/routes/v1'
 import corsOptions from '@/configs/cors-options'
 import passport from '@/configs/init.passport'
 import app from '@/servers/init.express'
+import io from '@/servers/init.socket'
+import socketEvent from '@/sockets/socket'
 
 dotenv.config()
 
 console.log(process.env.NODE_ENV)
-const PORT = process.env.PORT || 3500
 
 /* MIDDLEWARE */
 app.set('trust proxy', 'loopback')
@@ -32,8 +33,10 @@ app.use('/api/v1', APIs_V1)
 /* ERROR HANDLING */
 app.use(errorHandler)
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server up & running on port ${PORT}`)
+io.on('connection', socketEvent)
+
+io.on('error', (error) => {
+  console.log(`❌ Socket error: ${error}`)
 })
 
 app.on('error', (error) => {

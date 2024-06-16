@@ -1,17 +1,55 @@
 'use client'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import * as z from 'zod'
 
+import { IUserInfo } from '@/@types/auth'
+import { UpdateUserInfo } from '@/schema/task-schema'
+import { updateUserInfo } from '@/server/actions/task'
+
+import Loading from '../loading'
 import { Button } from '../ui/button'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form'
 import { Input } from '../ui/input'
 
-export default function SettingForm() {
-  const form = useForm()
+type Props = {
+  user: IUserInfo
+}
+
+export default function SettingForm({ user }: Props) {
+  const [isLoading, startTransition] = useTransition()
+
+  const form = useForm<z.infer<typeof UpdateUserInfo>>({
+    resolver: zodResolver(UpdateUserInfo),
+    defaultValues: {
+      email: user.email,
+      phoneNumber: user.phoneNumber
+    }
+  })
+
+  const onSubmit = async (data: { email: string; phoneNumber: string }) => {
+    startTransition(async () => {
+      try {
+        await updateUserInfo({
+          id: user.id,
+          email: data.email,
+          phoneNumber: data.phoneNumber
+        })
+        toast.success(
+          'User info updated successfully. New mail has been sent to your email address. Please check it out.'
+        )
+      } catch (error) {
+        toast.error('Failed to update user info')
+      }
+    })
+  }
 
   return (
     <Form {...form}>
-      <form className="w-2/3">
+      <form className="w-2/3" onSubmit={form.handleSubmit(onSubmit)}>
         <div className="space-y-4">
           <FormField
             name="email"
@@ -27,7 +65,7 @@ export default function SettingForm() {
           />
 
           <FormField
-            name="phone-number"
+            name="phoneNumber"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Phone number</FormLabel>
@@ -40,9 +78,8 @@ export default function SettingForm() {
           />
         </div>
 
-        <Button type="submit" className="mt-4">
-          {/* {isPending ? <Loading /> : 'Login'} */}
-          Update notifications
+        <Button type="submit" className="mt-4" disabled={isLoading}>
+          {isLoading ? <Loading /> : 'Update notifications'}
         </Button>
       </form>
     </Form>

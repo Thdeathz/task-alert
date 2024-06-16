@@ -5,6 +5,7 @@ export interface IUserInfo {
   name: string
   email: string
   role: UserRole
+  phoneNumber: string
 }
 
 export interface ILoginResponse {

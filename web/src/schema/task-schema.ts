@@ -14,3 +14,12 @@ export const CreateTaskSchema = z.object({
     message: 'Description is required'
   })
 })
+
+export const UpdateUserInfo = z.object({
+  email: z.string().min(1, {
+    message: 'Email is required'
+  }),
+  phoneNumber: z.string().min(1, {
+    message: 'Phone number is required'
+  })
+})

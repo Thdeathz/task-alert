@@ -6,7 +6,7 @@ import { NotifyOptionType } from '@/@types/task'
 
 import { Checkbox } from '../ui/checkbox'
 
-import NotifyOptionContent from './noti-option-content'
+import NotifyOptionContent from './notify-option-content'
 
 type Props = {
   notifyOption: NotifyOptionType[]

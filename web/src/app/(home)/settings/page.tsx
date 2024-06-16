@@ -1,7 +1,10 @@
 import SettingForm from '@/components/home/setting-form'
 import { Separator } from '@/components/ui/separator'
+import { getCurrentUser } from '@/server/actions/user'
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const user = await getCurrentUser()
+
   return (
     <section className="pt-12">
       <h1 className="text-2xl font-semibold">Settings</h1>
@@ -21,7 +24,7 @@ export default function SettingsPage() {
 
           <Separator className="my-3" />
 
-          <SettingForm />
+          <SettingForm user={user} />
         </div>
       </div>
     </section>

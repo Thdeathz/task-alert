@@ -25,3 +25,24 @@ export const getAllUsers: RequestHandler = async (req, res) => {
 
   return res.status(StatusCodes.OK).json(makeResponse.defaultResponse('Get all users success', StatusCodes.OK, users))
 }
+
+/**
+ * @desc Get user by id
+ * @route GET /users/:id
+ * @access Private
+ */
+export const getCurrentUser: RequestHandler = async (req, res) => {
+  const user = await userService.getCurrentUser()
+
+  return res.status(StatusCodes.OK).json(makeResponse.defaultResponse('Get current user success', StatusCodes.OK, user))
+}
+
+export const updateUserInfo: RequestHandler = async (req, res) => {
+  const { id, email, phoneNumber } = req.body
+
+  const updatedUser = await userService.updateUserInfo({ id, email, phoneNumber })
+
+  return res
+    .status(StatusCodes.OK)
+    .json(makeResponse.defaultResponse('Update user info success', StatusCodes.OK, updatedUser))
+}

@@ -5,9 +5,7 @@ import NextAuth from 'next-auth'
 import { ApiResponse } from '@/@types'
 import { ILoginResponse } from '@/@types/auth'
 import axiosBase from '@/lib/axios-base'
-import decode from '@/lib/jwt-decode'
 
-import { refresh } from './actions/auth'
 import authConfig from './auth.config'
 
 export const {
@@ -34,39 +32,6 @@ export const {
       }
 
       return true
-    },
-
-    async jwt({ token, user }) {
-      // Initial sign in
-      if (user) {
-        const decodedToken = decode(user.accessToken)
-
-        return {
-          ...token,
-          accessToken: user.accessToken,
-          accessTokenExpires: decodedToken.exp,
-          refreshToken: user.refreshToken,
-          user: decodedToken.user
-        }
-      }
-
-      /**
-       * This config bellow still not working as expected
-       * should be fixed in the future
-       * check the issue here: https://github.com/nextauthjs/next-auth/discussions/6642
-       */
-      // Token still valid
-      if (Date.now() < token.accessTokenExpires) {
-        return token
-      }
-
-      const { accessToken, accessTokenExpires } = await refresh(token)
-
-      return {
-        ...token,
-        accessToken,
-        accessTokenExpires
-      }
     },
 
     async session({ session, token }) {

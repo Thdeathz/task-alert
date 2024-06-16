@@ -23,3 +23,11 @@ export const convertExToSeconds = (expiresIn: string) => {
 
   return seconds
 }
+
+export const getTime = (dueDate: Date, value: number, unit: string) => {
+  if (unit === 'm') return new Date(dueDate).setMinutes(new Date(dueDate).getMinutes() - value)
+
+  if (unit === 'h') return new Date(dueDate).setHours(new Date(dueDate).getHours() - value)
+
+  return new Date(dueDate)
+}

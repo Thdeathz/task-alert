@@ -19,6 +19,7 @@ enum UserRole {
 }
 
 enum TaskType {
+  ONETIME
   DAILY
   WEEKLY
   MONTHLY
@@ -47,6 +48,7 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
+  phoneNumber   String?
   password      String?
   role          UserRole  @default(USER)
   emailVerified DateTime?
@@ -67,7 +69,7 @@ model Tag {
 model Task {
   id           String             @id @default(cuid())
   title        String
-  type         TaskType           @default(DAILY)
+  type         TaskType           @default(ONETIME)
   description  String
   dueDate      DateTime
   notifyOption NotificationType[] @default([APP])

@@ -2,11 +2,12 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
+import { INotifyOption } from '@/@types/task'
 import {
   Select,
   SelectContent,
@@ -19,16 +20,28 @@ import {
 import { CreateTaskSchema } from '@/schema/task-schema'
 import { createNewTask } from '@/server/actions/task'
 
+import Loading from '../loading'
 import { Button } from '../ui/button'
 import { DialogFooter } from '../ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form'
 import { Input } from '../ui/input'
+import { Separator } from '../ui/separator'
 import { Textarea } from '../ui/textarea'
+
+import NotifyOptionContent from './notify-option-content'
 
 export default function CreateTaskForm() {
   const router = useRouter()
+  const [isLoading, startTransition] = useTransition()
 
   const [taskType, setTaskType] = useState<string>('DAILY')
+  const [notifyOption, setNotifyOption] = useState<INotifyOption>({
+    notifyOption: ['APP'],
+    notifyAt: {
+      unit: 'm',
+      value: 30
+    }
+  })
   const form = useForm<z.infer<typeof CreateTaskSchema>>({
     resolver: zodResolver(CreateTaskSchema),
     defaultValues: {
@@ -39,24 +52,27 @@ export default function CreateTaskForm() {
     }
   })
 
-  const onSubmit = async (data: z.infer<typeof CreateTaskSchema>) => {
+  const onSubmit = (data: z.infer<typeof CreateTaskSchema>) => {
     if (!taskType) {
       toast.error('Please pick a task type')
     }
 
-    try {
-      await createNewTask({
-        ...data,
-        type: taskType
-      })
+    startTransition(async () => {
+      try {
+        await createNewTask({
+          ...data,
+          ...notifyOption,
+          dueDate: new Date(data.dueDate).toISOString(),
+          type: taskType
+        })
 
-      toast.success('New task has been added')
-      form.reset()
-      router.refresh()
-      // router.push('/')
-    } catch (error) {
-      toast.error('Failed to add new task. Please try again later')
-    }
+        toast.success('New task has been added')
+        form.reset()
+        router.refresh()
+      } catch (error) {
+        toast.error('Failed to add new task. Please try again later')
+      }
+    })
   }
 
   return (
@@ -103,6 +119,7 @@ export default function CreateTaskForm() {
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Task type</SelectLabel>
+                          <SelectItem value="ONETIME">one time</SelectItem>
                           <SelectItem value="DAILY">daily</SelectItem>
                           <SelectItem value="WEEKLY">weekly</SelectItem>
                           <SelectItem value="MONTHLY">monthly</SelectItem>
@@ -144,10 +161,13 @@ export default function CreateTaskForm() {
           />
         </div>
 
+        <Separator orientation="horizontal" className="mb-2 mt-4 w-full" />
+
+        <NotifyOptionContent form={notifyOption} setForm={setNotifyOption} />
+
         <DialogFooter>
           <Button type="submit" className="mt-4">
-            {/* {isPending ? <Loading /> : 'Login'} */}
-            Add new
+            {isLoading ? <Loading /> : 'Add new'}
           </Button>
         </DialogFooter>
       </form>
